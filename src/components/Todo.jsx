@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useImmerReducer } from "use-immer";
 import Task from "./Task";
 import tasksReducer from "./tasksReducer.js";
+import { TaskContextProvider } from "./TaskContextProvider";
 
 var currId = 1;
 
@@ -26,10 +27,6 @@ export default function Todo() {
     dispatch({ type: "DELETE", payload: { taskId: taskId } });
   }
 
-  // useEffect(() => {
-  //   console.log(tasks);
-  // });
-
   function handleOnCheckChange(taskId) {
     dispatch({ type: "TOGGLE_CHECKBOX", payload: { taskId } });
   }
@@ -46,15 +43,7 @@ export default function Todo() {
   function allTasks() {
     return tasks.map((task) => {
       if (task === null) return null;
-      return (
-        <Task
-          key={task.id}
-          task={task}
-          onEditTask={handleEditTask}
-          onTaskCheck={handleOnCheckChange}
-          onDeleteTask={handleTaskDelete}
-        />
-      );
+      return <Task key={task.id} task={task} />;
     });
   }
 
@@ -63,7 +52,15 @@ export default function Todo() {
       <div>
         <input placeholder="Add Task" onChange={handleInputChange} />
         <button onClick={handleAddTask}>Add Task</button>
-        <ul type="none">{allTasks()}</ul>
+        <TaskContextProvider
+          value={{
+            onDeleteTask: handleTaskDelete,
+            onTaskCheck: handleOnCheckChange,
+            onEditTask: handleEditTask,
+          }}
+        >
+          <ul type="none">{allTasks()}</ul>
+        </TaskContextProvider>
       </div>
     </>
   );

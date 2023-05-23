@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { TaskContext } from "./TaskContextProvider";
 
-export default function Task({ task, onTaskCheck, onDeleteTask, onEditTask }) {
+export default function Task({ task }) {
   const [editTitleText, setEditTitleText] = useState("");
   const [showEditInput, setShowEditInput] = useState(false);
+
+  const { onTaskCheck, onDeleteTask, onEditTask } = useContext(TaskContext);
 
   return (
     <li key={task.id}>
