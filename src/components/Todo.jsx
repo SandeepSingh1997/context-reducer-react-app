@@ -1,34 +1,29 @@
-import { useEffect, useState } from "react";
-import { useImmer } from "use-immer";
+import { useState } from "react";
+import { useImmerReducer } from "use-immer";
+import Task from "./Task";
+import tasksReducer from "./tasksReducer.js";
 
 var currId = 1;
 
 export default function Todo() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
 
-  const [tasks, setTasks] = useImmer([
+  const initialTasks = [
     {
-      id: 1,
+      id: 0,
       title: "Dummy Task",
       isDone: false,
     },
-  ]);
+  ];
 
-  function handleInputChange(e) {
-    setNewTaskTitle(e.target.value);
+  const [tasks, dispatch] = useImmerReducer(tasksReducer, initialTasks);
+
+  function handleEditTask(taskId, newTitle) {
+    dispatch({ type: "EDIT", payload: { taskId, newTitle } });
   }
 
-  function handleAddTask() {
-    if (newTaskTitle.length > 0) {
-      setTasks((draft) => {
-        draft.push({
-          id: currId,
-          title: newTaskTitle,
-          isDone: false,
-        });
-      });
-      currId++;
-    }
+  function handleTaskDelete(taskId) {
+    dispatch({ type: "DELETE", payload: { taskId: taskId } });
   }
 
   // useEffect(() => {
@@ -36,50 +31,33 @@ export default function Todo() {
   // });
 
   function handleOnCheckChange(taskId) {
-    setTasks((draft) => {
-      for (let task of draft) {
-        if (task.id === taskId) {
-          task.isDone = !task.isDone;
-        }
-      }
-    });
+    dispatch({ type: "TOGGLE_CHECKBOX", payload: { taskId } });
   }
 
-  function handleTaskDelete(taskId) {
-    setTasks((draft) => {
-      const index = draft.findIndex((task) => task.id === taskId);
-      if (index !== -1) draft.splice(index, 1);
-    });
+  function handleInputChange(e) {
+    setNewTaskTitle(e.target.value);
+  }
+
+  function handleAddTask() {
+    dispatch({ type: "ADD", payload: { title: newTaskTitle, currId: currId } });
+    currId++;
   }
 
   function allTasks() {
     return tasks.map((task) => {
       if (task === null) return null;
       return (
-        <li key={task.id}>
-          <div>
-            <input
-              type="checkbox"
-              name={task.id}
-              onChange={() => {
-                handleOnCheckChange(task.id);
-              }}
-              checked={task.isDone}
-            />
-            <span>{task.title + task.id}</span>
-            <button
-              onClick={() => {
-                handleTaskDelete(task.id);
-              }}
-            >
-              delete
-            </button>
-            <button>edit</button>
-          </div>
-        </li>
+        <Task
+          key={task.id}
+          task={task}
+          onEditTask={handleEditTask}
+          onTaskCheck={handleOnCheckChange}
+          onDeleteTask={handleTaskDelete}
+        />
       );
     });
   }
+
   return (
     <>
       <div>
